@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
+} from "recharts";
 import { api } from "../services/api";
 
 type StakeholderData = {
@@ -9,15 +17,28 @@ type StakeholderData = {
   score: number;
 };
 
+type APIItem = {
+  id: string;
+  name: string;
+  purchaseDate?: string;
+  criticality?: number;
+  redundancy?: number;
+  supportStatus?: string;
+};
+
 export default function StakeholderDashboard() {
   const [data, setData] = useState<StakeholderData[]>([]);
 
-  const calculateScore = (item: any) => {
+  const calculateScore = (item: APIItem) => {
     let score = 0;
+
     if (item.purchaseDate) {
-      const ageYears = new Date().getFullYear() - new Date(item.purchaseDate).getFullYear();
+      const ageYears =
+        new Date().getFullYear() - new Date(item.purchaseDate).getFullYear();
       score += ageYears > 7 ? 40 : 10;
-    } else score += 10;
+    } else {
+      score += 10;
+    }
 
     score += (item.criticality ?? 1) * 4;
     score -= (item.redundancy ?? 0) * 5;
@@ -27,9 +48,10 @@ export default function StakeholderDashboard() {
   };
 
   useEffect(() => {
-    api.get("/infrastructure/get-infrastructure")
-      .then(res => {
-        const chartData = res.data.map((item: any) => ({
+    api
+      .get<APIItem[]>("/infrastructure/get-infrastructure")
+      .then((res) => {
+        const chartData: StakeholderData[] = res.data.map((item) => ({
           id: item.id,
           name: item.name,
           financialRisk: calculateScore(item) * 1000,
@@ -49,21 +71,21 @@ export default function StakeholderDashboard() {
       style={{
         width: "100%",
         height: 400,
-        backgroundColor: "#1e293b", // dark card background
+        backgroundColor: "#1e293b",
         padding: 20,
         borderRadius: 12,
         boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
       }}
     >
-      <h2
-        className="dashboard-title"
-        style={{ color: "#f1f5f9", marginBottom: 16 }}
-      >
+      <h2 style={{ color: "#f1f5f9", marginBottom: 16 }}>
         Stakeholder Dashboard
       </h2>
 
       <ResponsiveContainer width="100%" height="90%">
-        <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+        <BarChart
+          data={data}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        >
           <XAxis
             dataKey="name"
             stroke="#e2e8f0"
@@ -71,8 +93,14 @@ export default function StakeholderDashboard() {
           />
           <YAxis stroke="#e2e8f0" tick={{ fontSize: 12, fill: "#e2e8f0" }} />
           <Tooltip
-            formatter={(value: number) => `$${value.toLocaleString()}`}
-            contentStyle={{ backgroundColor: "#334155", borderRadius: 8, color: "#f1f5f9" }}
+            formatter={(value) =>
+              value != null ? `$${Number(value).toLocaleString()}` : ""
+            }
+            contentStyle={{
+              backgroundColor: "#334155",
+              borderRadius: 8,
+              color: "#f1f5f9",
+            }}
             labelStyle={{ color: "#f1f5f9" }}
           />
           <Bar dataKey="financialRisk" radius={[4, 4, 0, 0]}>
