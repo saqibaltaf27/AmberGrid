@@ -5,84 +5,85 @@ type Infra = {
   id: string;
   name: string;
   purchaseDate: string;
-  vendor: string;
-  score: number;
+  vendor?: string;
+  criticality?: number;
+  redundancy?: number;
+  supportStatus?: string;
+  score?: number;
 };
 
 export default function RoadmapTimeline() {
-  const [infrastructure, setInfrastructure] = useState<Infra[]>([]);
+  const [infra, setInfra] = useState<Infra[]>([]);
+
+  // Score calculation
+  const calculateScore = (item: Infra) => {
+    let score = 0;
+    if (item.purchaseDate) {
+      const age = new Date().getFullYear() - new Date(item.purchaseDate).getFullYear();
+      score += age > 7 ? 40 : 10;
+    } else score += 10;
+
+    score += (item.criticality ?? 1) * 4;
+    score -= (item.redundancy ?? 0) * 5;
+    if (item.supportStatus !== "Active") score += 15;
+
+    return Math.min(Math.max(score, 0), 100);
+  };
 
   useEffect(() => {
     api.get("/infrastructure/get-infrastructure")
-      .then(res => setInfrastructure(res.data))
-      .catch(err => console.error(err));
+      .then(res => {
+        const dataWithScore = res.data.map((item: Infra) => ({
+          ...item,
+          score: calculateScore(item),
+        }));
+        setInfra(dataWithScore);
+      })
+      .catch(console.error);
   }, []);
 
-  // Map risk score to a start month (1-12)
-  const getStartMonth = (score: number) => Math.ceil((100 - score) / 8.33);
-
-  // Map risk score to duration in months (higher risk → shorter duration)
+  const getStartMonth = (score: number) => Math.min(Math.max(Math.ceil((100 - score) / 8.33), 1), 12);
   const getDuration = (score: number) => Math.max(1, Math.ceil((100 - score) / 20));
-
-  // Map risk score to color
-  const getColor = (score: number) => {
-    if (score >= 70) return "#f87171"; // red
-    if (score >= 50) return "#facc15"; // yellow
-    return "#4ade80"; // green
-  };
+  const getColor = (score: number) => (score >= 70 ? "#f87171" : score >= 50 ? "#facc15" : "#4ade80");
 
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
+
+  // Assign vertical positions to avoid overlap
+  const monthMap: Record<number, Infra[]> = {};
+  months.forEach(m => { monthMap[m] = []; });
+  infra.forEach(item => {
+    const start = getStartMonth(item.score ?? 50);
+    const duration = getDuration(item.score ?? 50);
+    for (let m = start; m < start + duration; m++) {
+      if (monthMap[m]) monthMap[m].push(item);
+    }
+  });
 
   return (
     <div style={{ overflowX: "auto", marginTop: 20 }}>
       <h2>Interactive Migration Roadmap</h2>
       <div style={{ display: "flex", minWidth: 1200 }}>
         {months.map(month => (
-          <div
-            key={month}
-            style={{
-              flex: "0 0 100px",
-              border: "1px solid #334155",
-              minHeight: 120,
-              position: "relative",
-              padding: 4
-            }}
-          >
-            <div style={{ textAlign: "center", fontWeight: 600, marginBottom: 4 }}>
-              Month {month}
+          <div key={month} className="timeline-block">
+            <h4>Month {month}</h4>
+            <div style={{ position: "relative", height: `${monthMap[month].length * 28}px`, width: "100%" }}>
+              {monthMap[month].map((item, idx) => (
+                <div
+                  key={item.id}
+                  className="timeline-item"
+                  title={`Name: ${item.name}\nVendor: ${item.vendor}\nPurchase: ${item.purchaseDate}\nRisk: ${item.score}`}
+                  style={{
+                    top: idx * 28,
+                    left: 0,
+                    width: `${getDuration(item.score ?? 50) * 100}px`,
+                    backgroundColor: getColor(item.score ?? 50),
+                    position: "absolute",
+                  }}
+                >
+                  {item.name} ({item.score})
+                </div>
+              ))}
             </div>
-            {infrastructure
-              .filter(i => {
-                const start = getStartMonth(i.score);
-                const duration = getDuration(i.score);
-                return month >= start && month < start + duration;
-              })
-              .map(i => {
-                const start = getStartMonth(i.score);
-                const duration = getDuration(i.score);
-                return (
-                  <div
-                    key={i.id}
-                    title={`${i.name}\nVendor: ${i.vendor}\nPurchase: ${i.purchaseDate}\nRisk: ${i.score}`}
-                    style={{
-                      position: "absolute",
-                      top: 20 + Math.random() * 80, // stagger bars vertically
-                      left: 0,
-                      width: `${duration * 100}px`,
-                      backgroundColor: getColor(i.score),
-                      padding: "2px 4px",
-                      borderRadius: 4,
-                      color: "#fff",
-                      fontSize: 12,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis"
-                    }}
-                  >
-                    {i.name} ({i.score})
-                  </div>
-                );
-              })}
           </div>
         ))}
       </div>
