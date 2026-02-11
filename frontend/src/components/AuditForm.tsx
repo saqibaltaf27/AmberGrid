@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../services/api";
 import dayjs from "dayjs";
-import { saveOffline } from "../offline/indexedDB";
+import { saveOffline } from "../offline/indexedDb.js";
 
 type AuditFormData = {
   name: string;

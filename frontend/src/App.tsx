@@ -1,6 +1,6 @@
-import AuditForm from "./components/AuditForm";
-import RoadmapTimeline from "./components/RoadmapTimeline";
-import StakeholderDashboard from "./components/StakeholderDashboard";
+import AuditForm from "./components/AuditForm.js";
+import RoadmapTimeline from "./components/RoadMapTimeline.js";
+import StakeholderDashboard from "./components/StakeholderDashboard.js";
 
 function App() {
   return (
