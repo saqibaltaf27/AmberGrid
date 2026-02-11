@@ -1,0 +1,23 @@
+body{
+  background: #0f172a;
+  color: #e2e8f0;
+  font-family: sans-serif;
+}
+
+.card{
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.timeline {
+  display: flex;
+  overflow-x: auto;
+}
+
+.timeline-block {
+  min-width: 120px;
+  padding: 10px;
+  background: #334155;
+  margin: 5px;
+}

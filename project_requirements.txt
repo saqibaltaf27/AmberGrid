@@ -1,0 +1,24 @@
+AmberGrid Legacy Audit and Cloud Transition Architect
+
+This internal tool enables field technicians to audit aging industrial infrastructure and calculate technical risk scores for cloud migration planning.
+
+Features:
+    1. Infrastructure Audit Engine for logging servers, networking gear, and software licenses.
+    2. Risk Scoring Engine that calculates a 0-100 system health score using weighted logic.
+    3. Interactive 12-month migration roadmap(Gannt).
+    4. Read-only stake holder dashboard.
+    5. Offine-first capability using local storage for unreliable connectivity.
+    6. Detailed Documentation.
+
+Deliverables:
+    1. Codebase: A ZIP file containing the complete, well-commented source code (Frontend and Backend).
+    2. Public Repository: A GitHub repository link including a professional README and a clear commit history.
+    3. Live Deployment: A link to the working application deployed via Vercel, Netlify, or a similar cloud provider.
+    4. Demonstration: A 2-3 minute screen recording or a set of 5-8 high-resolution screenshots showing the audit flow, the risk score calculation, and the roadmap visualization.
+
+Tech-Stack:
+ - Frontend: React.js + TypeScript + indexedDB
+ - Backend: Node.js + Express + TypeScript
+ - Database: SQLite3
+ - Charts: Recharts
+ - Deployment: Vercel
